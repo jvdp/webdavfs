@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -8,28 +7,29 @@ import (
 )
 
 type MountOptions struct {
-	AllowRoot		bool
-	AllowOther		bool
-	DefaultPermissions	bool
-	NoDefaultPermissions	bool
-	ReadOnly		bool
-	ReadWrite		bool
-	ReadWriteDirOps		bool
-	Uid			uint32
-	Gid			uint32
-	Mode			uint32
-	Cookie			string
-	Password		string
-	Username		string
-	AsyncRead		bool
-	NonEmpty		bool
-	MaxConns		uint32
-	MaxIdleConns		uint32
-	SabreDavPartialUpdate	bool
+	AllowRoot             bool
+	AllowOther            bool
+	DefaultPermissions    bool
+	NoDefaultPermissions  bool
+	ReadOnly              bool
+	ReadWrite             bool
+	ReadWriteDirOps       bool
+	Uid                   uint32
+	Gid                   uint32
+	Mode                  uint32
+	Cookie                string
+	Password              string
+	Username              string
+	AsyncRead             bool
+	NonEmpty              bool
+	MaxConns              uint32
+	MaxIdleConns          uint32
+	SabreDavPartialUpdate bool
+	Headers               map[string]string
 }
 
 func parseUInt32(v string, base int, name string, loc *uint32) (err error) {
-	n, err := strconv.ParseUint(v , base, 32)
+	n, err := strconv.ParseUint(v, base, 32)
 	if err == nil {
 		*loc = uint32(n)
 	}
@@ -40,6 +40,7 @@ func parseMountOptions(n string, sloppy bool) (mo MountOptions, err error) {
 	if n == "" {
 		return
 	}
+	mo.Headers = make(map[string]string)
 
 	for _, kv := range strings.Split(n, ",") {
 		a := strings.SplitN(kv, "=", 2)
@@ -85,7 +86,10 @@ func parseMountOptions(n string, sloppy bool) (mo MountOptions, err error) {
 		case "sabredav_partialupdate":
 			mo.SabreDavPartialUpdate = true
 		default:
-			if !sloppy {
+			header := strings.Split(a[0], "header:")
+			if len(header) > 1 {
+				mo.Headers[header[1]] = v
+			} else if !sloppy {
 				err = errors.New(a[0] + ": unknown option")
 			}
 		}

@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -6,6 +5,7 @@ import (
 	"os"
 	"path"
 	"strings"
+
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"github.com/pborman/getopt/v2"
@@ -14,16 +14,17 @@ import (
 const VERSION = "1.0"
 
 type Opts struct {
-	Type		string
-	TraceOpts	string
-	TraceFile	string
-	Daemonize	bool
-	Fake		bool
-	NoMtab		bool
-	Sloppy		bool
-	Verbose		bool
-	RawOptions	string
+	Type       string
+	TraceOpts  string
+	TraceFile  string
+	Daemonize  bool
+	Fake       bool
+	NoMtab     bool
+	Sloppy     bool
+	Verbose    bool
+	RawOptions string
 }
+
 var opts = Opts{}
 var mountOpts MountOptions
 var progname = path.Base(os.Args[0])
@@ -53,7 +54,7 @@ func fatal(err string) {
 
 // rebuild the os.Args array, string username/password.
 func rebuildOptions(url, path string) {
-	args := []string{ os.Args[0], url, path }
+	args := []string{os.Args[0], url, path}
 	bools := ""
 	if opts.NoMtab {
 		bools += "n"
@@ -68,16 +69,16 @@ func rebuildOptions(url, path string) {
 		bools += "v"
 	}
 	if bools != "" {
-		args = append(args, "-" + bools)
+		args = append(args, "-"+bools)
 	}
 	if opts.Type != "" {
-		args = append(args, "-t" + opts.Type)
+		args = append(args, "-t"+opts.Type)
 	}
 	if opts.TraceOpts != "" {
-		args = append(args, "-T" + opts.TraceOpts)
+		args = append(args, "-T"+opts.TraceOpts)
 	}
 	if opts.TraceFile != "" {
-		args = append(args, "-F" + opts.TraceFile)
+		args = append(args, "-F"+opts.TraceFile)
 	}
 	stropts := []string{}
 	for _, o := range strings.Split(opts.RawOptions, ",") {
@@ -95,7 +96,7 @@ func rebuildOptions(url, path string) {
 		}
 	}
 	if len(stropts) > 0 {
-		args = append(args, "-o" + strings.Join(stropts, ","))
+		args = append(args, "-o"+strings.Join(stropts, ","))
 	}
 	os.Args = args
 }
@@ -108,7 +109,7 @@ func main() {
 	var err error
 	for fd < 3 {
 		file, err = os.OpenFile("/dev/null", os.O_RDWR, 0666)
-                if err != nil {
+		if err != nil {
 			fatal(err.Error())
 		}
 		fd = int(file.Fd())
@@ -133,7 +134,7 @@ func main() {
 	// put non-option arguments last.
 	l := len(os.Args)
 	if l > 2 && !strings.HasPrefix(os.Args[1], "-") &&
-		    !strings.HasPrefix(os.Args[2], "-") {
+		!strings.HasPrefix(os.Args[2], "-") {
 		// os.Args = append([]string{}, os.Args[:1]..., os.Args[3:]..., os.Args[1:3]...)
 		args := []string{}
 		args = append(args, os.Args[0])
@@ -152,13 +153,13 @@ func main() {
 		usage(nil, 0)
 	}
 	if version {
-		fmt.Printf("webdavfs %s\n", VERSION);
+		fmt.Printf("webdavfs %s\n", VERSION)
 		os.Exit(0)
 	}
 
 	// check that we have two non-option args at the end
 	if l < 3 || strings.HasPrefix(os.Args[l-2], "-") ||
-	            strings.HasPrefix(os.Args[l-1], "-") {
+		strings.HasPrefix(os.Args[l-1], "-") {
 		usage(nil, 1)
 	}
 
@@ -246,7 +247,7 @@ func main() {
 
 	username := os.Getenv("WEBDAV_USERNAME")
 	password := os.Getenv("WEBDAV_PASSWORD")
-	cookie   := os.Getenv("WEBDAV_COOKIE")
+	cookie := os.Getenv("WEBDAV_COOKIE")
 	if mountOpts.Username != "" {
 		username = mountOpts.Username
 	}
@@ -256,6 +257,7 @@ func main() {
 	if mountOpts.Cookie != "" {
 		cookie = mountOpts.Cookie
 	}
+
 	os.Unsetenv("WEBDAV_USERNAME")
 	os.Unsetenv("WEBDAV_PASSWORD")
 	os.Unsetenv("WEBDAV_COOKIE")
@@ -266,14 +268,15 @@ func main() {
 	}
 
 	dav := &DavClient{
-		Url: url,
-		MaxConns: int(mountOpts.MaxConns),
+		Url:          url,
+		MaxConns:     int(mountOpts.MaxConns),
 		MaxIdleConns: int(mountOpts.MaxIdleConns),
-		Username: username,
-		Password: password,
-		Cookie: cookie,
-		PutDisabled: mountOpts.ReadWriteDirOps,
-		IsSabre: mountOpts.SabreDavPartialUpdate,
+		Username:     username,
+		Password:     password,
+		Cookie:       cookie,
+		PutDisabled:  mountOpts.ReadWriteDirOps,
+		IsSabre:      mountOpts.SabreDavPartialUpdate,
+		Headers:      mountOpts.Headers,
 	}
 	err = dav.Mount()
 	if err != nil {
@@ -338,4 +341,3 @@ func main() {
 		fatal(err.Error())
 	}
 }
-
